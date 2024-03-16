@@ -6,6 +6,7 @@ import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.j
 import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass.js';
 import {OutlinePass} from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import {OutputPass} from 'three/examples/jsm/postprocessing/OutputPass.js';
+import {Planet} from './planet.js';
 
 let mouse = new THREE.Vector2();
 let raycaster = new THREE.Raycaster();
@@ -22,8 +23,8 @@ controls.enableDamping = true;
 controls.dampingFactor = 100;
 controls.enableZoom = true;
 controls.enablePan = false;
-controls.minDistance = 1.5;
-controls.maxDistance = 5;
+// controls.minDistance = 1.5;
+// controls.maxDistance = 5;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xFAC898);
@@ -64,18 +65,18 @@ sun.directionalLight.position
 scene.add(sun.directionalLight);
 scene.add(sun.backLight);
 
-// The planet
-scene.add(new THREE.Mesh(
-    (() => {
-        const geometry = new THREE.IcosahedronGeometry(1, 10);
-        console.log(geometry)
-        return geometry;
-    }),
-    new THREE.MeshStandardMaterial({
-        color: 0x00ff00,
-        flatShading: true
-    })
-));
+// // The planet
+// scene.add(new THREE.Mesh(
+//     (() => {
+//         const geometry = new THREE.IcosahedronGeometry(1, 10);
+//         console.log(geometry)
+//         return geometry;
+//     }),
+//     new THREE.MeshStandardMaterial({
+//         color: 0x00ff00,
+//         flatShading: true
+//     })
+// ));
 
 // Additional lights
 
@@ -118,54 +119,59 @@ function raycastHandler(){
     const intersects = raycaster.intersectObjects( scene.children, true);
 };
 
-const noises = {
-    noiseF: 0.015,
-    noiseD: 15,
-    noiseWater: 0.4,
-    noiseWaterLevel:0.2
-}
 
-genEarth();
+const planet = new Planet();
+planet.generate();
+scene.add(planet.mesh);
 
-function genEarth(){
+// const noises = {
+//     noiseF: 0.015,
+//     noiseD: 15,
+//     noiseWater: 0.4,
+//     noiseWaterLevel:0.2
+// }
+
+// genEarth();
+
+// function genEarth(){
     
-    const time = Date.now()*0.001;
-    const noisesArray = [];
-    function noise(v, f, i) {
-        const nv = new THREE.Vector3(v.x, v.y, v.z).multiplyScalar(f).addScalar(time);
-        let noice = (new SimplexNoise().noise3d(nv.x, nv.y, nv.z) + 1) / 2;
-        noice = (noice > noises.noiseWater) ? noice : noises.noiseWaterLevel;
-        if (Number.isInteger(i)) noisesArray[i] = noice;
-        return noice;
-    }
+//     const time = Date.now()*0.001;
+//     const noisesArray = [];
+//     function noise(v, f, i) {
+//         const nv = new THREE.Vector3(v.x, v.y, v.z).multiplyScalar(f).addScalar(time);
+//         let noice = (new SimplexNoise().noise3d(nv.x, nv.y, nv.z) + 1) / 2;
+//         noice = (noice > noises.noiseWater) ? noice : noises.noiseWaterLevel;
+//         if (Number.isInteger(i)) noisesArray[i] = noice;
+//         return noice;
+//     }
 
-    const dispV = (v, i) => {
-        const dv = new Vector3(v.x, v.y, v.z);
-        dv.add(dv.clone().normalize().multiplyScalar(noise(dv, noises.noiseF, i) * noises.noiseD));
-        v.x = dv.x; v.y = dv.y; v.z = dv.z;
-    };
+//     const dispV = (v, i) => {
+//         const dv = new Vector3(v.x, v.y, v.z);
+//         dv.add(dv.clone().normalize().multiplyScalar(noise(dv, noises.noiseF, i) * noises.noiseD));
+//         v.x = dv.x; v.y = dv.y; v.z = dv.z;
+//     };
 
-    // globe geo
-    const geometry = new THREE.BufferGeometry().fromGeometry(new THREE.IcosahedronGeometry(radius, detail));
-    geometry.mergeVertices();
+//     // globe geo
+//     const geometry = new THREE.BufferGeometry().fromGeometry(new THREE.IcosahedronGeometry(radius, detail));
+//     geometry.mergeVertices();
 
-    for (let i = 0; i < geometry.vertices.length; i++) dispV(geometry.vertices[i], i);
-    geometry.computeFlatVertexNormals();
+//     for (let i = 0; i < geometry.vertices.length; i++) dispV(geometry.vertices[i], i);
+//     geometry.computeFlatVertexNormals();
 
-    let groundColor = 0x00ff00;
-    let waterColor = 0x0000ff;
+//     let groundColor = 0x00ff00;
+//     let waterColor = 0x0000ff;
 
-    for (let i = 0; i < geometry.faces.length; i++) {
-        const f = geometry.faces[i];
-        f.color.set(groundColor);
-        if (noisesArray[f.a] === noises.noiseWaterLevel && noisesArray[f.b] === noises.noiseWaterLevel && noisesArray[f.c] === noises.noiseWaterLevel) {
-        f.color.set(waterColor);
-        }
-    }
+//     for (let i = 0; i < geometry.faces.length; i++) {
+//         const f = geometry.faces[i];
+//         f.color.set(groundColor);
+//         if (noisesArray[f.a] === noises.noiseWaterLevel && noisesArray[f.b] === noises.noiseWaterLevel && noisesArray[f.c] === noises.noiseWaterLevel) {
+//         f.color.set(waterColor);
+//         }
+//     }
 
-    const material = new THREE.MeshPhongMaterial({ shininess: 30, flatShading: true, vertexColors: VertexColors} );
-    const mesh = new THREE.Mesh(geometry.toBufferGeometry(), material);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    scene.add(mesh);
-}
+//     const material = new THREE.MeshPhongMaterial({ shininess: 30, flatShading: true, vertexColors: VertexColors} );
+//     const mesh = new THREE.Mesh(geometry.toBufferGeometry(), material);
+//     mesh.castShadow = true;
+//     mesh.receiveShadow = true;
+//     scene.add(mesh);
+// }
