@@ -10,7 +10,8 @@ export async function loadSolarModel(scene) {
             '/Components/3d/solar.glb',
             function(gltf){
                 let coal = gltf.scene;
-                coal.scale.set(0.05, 0.05, 0.05);
+                let s = 0.000005;
+                coal.scale.set(s, s, s);
                 coal.position.set(0, 0, 0);
 
                 // mixer = new THREE.AnimationMixer(gltf.scene);

@@ -1,4 +1,3 @@
-import './style.css';
 import * as THREE from 'three';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls.js';
@@ -7,22 +6,26 @@ import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.j
 import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass.js';
 import {OutlinePass} from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import {OutputPass} from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+
 import { Planet } from './Components/planet.js';
 
 import { loadCoalModel } from './Components/coal.js';
 import { loadHydroModel } from './Components/hydro.js';
 import { loadNuclearModel } from './Components/nuclear.js';
 import { loadSolarModel } from './Components/solar.js';
+import { loadWindModel } from './Components/wind.js';
+
+import * as logic from './logic.js';
 
 let mouse = new THREE.Vector2();
+let oneShot = false;
 // Create a renderer
 const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#main-canvas') });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 // Create a camera
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 5;
+camera.position.z = 20;
 
 let controls = new ArcballControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -90,12 +93,8 @@ function onPointerMove( event ) {
 
 addEventListener('mousemove', onPointerMove);
 
-
-const planet = new Planet(new THREE.MeshStandardMaterial({
-    color: 0x60b52f5e9c41,
-    roughness: 1,
-    flatShading: true
-}));
+// material config hardcoded in Planet ctor
+const planet = new Planet();
 planet.generate();
 scene.add(planet.mesh);
 
@@ -105,25 +104,26 @@ planet.mesh.traverse((child) => {
     }
 });
 
-const coal = (await loadCoalModel(scene)).children[0];
-const hydro = (await loadHydroModel(scene)).children[0];
-const nuclear = (await loadNuclearModel(scene)).children[0];
-const solar = (await loadSolarModel(scene)).children[0];
+const generators = {
+    coal        : (await loadCoalModel(scene)).children[0],
+    hydro       : (await loadHydroModel(scene)).children[0],
+    nuclear     : (await loadNuclearModel(scene)).children[0],
+    solar       : (await loadSolarModel(scene)).children[0],
+    wind        : (await loadWindModel(scene)).children[0]
+}
 
 
-let sg = new THREE.BoxGeometry(1, 1, 1);
-let mat = new THREE.MeshStandardMaterial({color: 'hotpink'});
-const boqs = new THREE.Mesh(sg, mat)
 
-// wut it no werk ;( eh its in middle 
-const ocean = new THREE.IcosahedronGeometry(10, 3);
-const oceanMaterial = new THREE.MeshStandardMaterial({
-    color: 0x445ed4,
-    flatShading: true,
-    transparent: true,
-    opacity: .9
-});
-const oceanMesh = new THREE.Mesh(ocean, oceanMaterial);
+const oceanRadius = 10;
+const oceanMesh = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(oceanRadius, 3),
+    new THREE.MeshStandardMaterial({
+        color: 0x445ed4,
+        transparent: true,
+        opacity: .5,
+        roughness: .5
+    })
+);
 oceanMesh.receiveShadow = true;
 scene.add(oceanMesh);
 oceanMesh.name = 'ocean';
@@ -155,11 +155,15 @@ const cursor = {
 }
 scene.add(cursor.light);
 
-addEventListener('mousedown', onMouseDown);
+let structures = [];
+let selection = 'hydro';
 
-let listObj = [];
-function onMouseDown(e) { // no way
-    cursor.pressed = true;
+let prev = {};
+addEventListener('mousemove', () => {
+    unmoved = false;
+    scene.remove(prev);
+    if (cursor.pressed)
+        return;
     
     cursor.raycaster.setFromCamera(mouse, camera);
     const intersects = cursor.raycaster.intersectObject(planet.mesh);
@@ -171,27 +175,96 @@ function onMouseDown(e) { // no way
     const normal = intersect.face.normal.clone();
 
 
-    if (position.length() < ocean.parameters.radius) return;
+    // if (position.length() < ocean.parameters.radius) return;
     // sobbing rn why is the coal plamt so small
     
 
-    listObj.push(placeObject(coal, position, normal));
+    prev = placeObject(generators[selection], position, normal, 0.5);
+})
+
+addEventListener('mousedown', () => unmoved = true);
+addEventListener('mouseup', onMouseUp);
+let unmoved = true;
+
+function onMouseUp(e) { // no way
+    if (unmoved)
+    {
+        cursor.raycaster.setFromCamera(mouse, camera);
+        const intersects = cursor.raycaster.intersectObject(planet.mesh);
+        
+        if (intersects.length === 0) return;
+
+        const intersect = intersects[0];
+        const position = intersect.point;
+        const normal = intersect.face.normal.clone();
+
+        // logic.energyGenerators.push(new);
+
+        // move this step into Generator interface to  allow oil plants on the sea and stuff
+        if (selection === 'coal' || selection === 'nuclear') {
+            if (position.length() < oceanRadius) return;
+        }
+        if (selection === 'hydro') {
+            if (position.length() > oceanRadius) return;
+        }
+        // prevent collision
+        for (const structure of structures) {
+            if (false ) return;
+        }
+        
+        if (!selection) return; // yes
+        structures.push(placeObject(generators[selection], position, normal));
+    }
+    
 }
-function placeObject(obj, pos, norm) {
+function placeObject(obj, position, normal, alpha = 1) {
     // ok yeah mb do rotate it here
     const clone = SkeletonUtils.clone(obj);
-    clone.scale.set(0.075,0.075,0.075);
-    clone.position.copy(pos);
+    
+    clone.position.copy(position);
     clone.rotateX(Math.PI / 2);
-    clone.lookAt(pos.clone().add(norm));
+    clone.lookAt(position.clone().add(normal));
+
+
+    if (selection === 'wind') {
+        logic.energyGenerators.push([new logic.WindGenerator(), clone]);
+        clone.scale.set(0.0005, 0.0005, 0.0005);
+    } else if (selection === 'solar') {
+        logic.energyGenerators.push([new logic.SolarGenerator(), clone]);
+        clone.scale.set(0.0075, 0.0075, 0.0075);
+    } else if (selection === 'coal') {
+        logic.energyGenerators.push([new logic.FossilFuelGenerator(), clone]);
+        clone.scale.set(0.075, 0.075, 0.075);
+    } else if (selection === 'nuclear') {
+        logic.energyGenerators.push([new logic.NuclearGenerator(), clone]);
+        clone.scale.set(0.0075, 0.0075, 0.0075);
+    } else if (selection === 'hydro') {
+        logic.energyGenerators.push([new logic.HydroGenerator(), clone]);
+        clone.scale.set(0.05, 0.05, 0.05);
+    }
+
+    // structures.push(placeObject(generators[selection], position, normal)); // 💀💀
+
     scene.add(clone);
     return clone;
 }
 
+let msPerCycle = 1000;
+let statistics;
+
+// whats ms per cycle though milisecond per cycle of game, every cycle month i++
+
+let oldTime = performance.now();
 const Update = () => {
     controls.update();
-    sun.update(engine.delta);
+    sun.update(engine.delta); // sus.update
     cursor.update();
+    
+    let delta = performance.now() - oldTime;
+    if (delta < msPerCycle) return;
+    oldTime = performance.now();
+
+    statistics = logic.calculate();
 }
 
 const Render = () => {
@@ -207,54 +280,73 @@ engine.start();
 
 
 
-// const noises = {
-//     noiseF: 0.015,
-//     noiseD: 15,
-//     noiseWater: 0.4,
-//     noiseWaterLevel:0.2
-// }
 
-// genEarth();
 
-// function genEarth(){
+
+// U-Eey
+let statButton = document.getElementById('rsc-btn');
+let buildButton = document.getElementById('iftr-btn');
+
+statButton.addEventListener('click', statsHandler);
+buildButton.addEventListener('click', buildHandler);
+
+var uiStatus=0
+document.addEventListener('keydown', function(event){
+    if(event.keyCode==9){
+        event.preventDefault();
+        uiToggle();
+    }
+});
+
+function uiToggle(){
+    if(uiStatus==0){
+        document.getElementById('ui-obj').style.opacity='0';
+        document.getElementById('ui-obj').style.height='0px';
+        document.getElementById('ui-side-bar').style.opacity='0';
+        document.getElementById('ui-side-bar').style.height='0px';
+        document.getElementById('iftr-btn').style.transform='translate(-50%,-30%) scaleY(0)';
+        document.getElementById('rsc-btn').style.transform='translate(-50%,-30%) scaleY(0)';
+        uiStatus=1;
+    }
+    else{
+        document.getElementById('ui-obj').style.opacity='1';
+        document.getElementById('ui-obj').style.height='30vh';
+        document.getElementById('ui-side-bar').style.opacity='1';
+        document.getElementById('ui-side-bar').style.height='96.5vh';
+        document.getElementById('iftr-btn').style.transform='translate(-50%,-50%) scaleY(1)';
+        document.getElementById('rsc-btn').style.transform='translate(-50%,-50%) scaleY(1)';
+        uiStatus=0;
+    }
+}
+
+function statsHandler(){
     
-//     const time = Date.now()*0.001;
-//     const noisesArray = []; auto reload? auto reload? auto reload? auto reload? auto reload? auto reload? auto reload? auto reload? autoreload?
-//     function noise(v, f, i) {
-//         const nv = new THREE.Vector3(v.x, v.y, v.z).multiplyScalar(f).addScalar(time);
-//         let noice = (new SimplexNoise().noise3d(nv.x, nv.y, nv.z) + 1) / 2;
-//         noice = (noice > noises.noiseWater) ? noice : noises.noiseWaterLevel;
-//         if (Number.isInteger(i)) noisesArray[i] = noice;
-//         return noice;
-//     }
+}
 
-//     const dispV = (v, i) => {
-//         const dv = new Vector3(v.x, v.y, v.z);
-//         dv.add(dv.clone().normalize().multiplyScalar(noise(dv, noises.noiseF, i) * noises.noiseD));
-//         v.x = dv.x; v.y = dv.y; v.z = dv.z;
-//     };
+function buildHandler(){
+    const statBox = document.getElementById('stat-box');
+    statBox.style.display='none';
+    const buildBox = document.getElementById('build-box');
+    buildBox.style.display='block';
+    
+}
 
-//     // globe geo
-//     const geometry = new THREE.BufferGeometry().fromGeometry(new THREE.IcosahedronGeometry(radius, detail));
-//     geometry.mergeVertices();
+document.getElementById('wind-pl-box').addEventListener('click', () => {
+    selection = 'wind';
+});
 
-//     for (let i = 0; i < geometry.vertices.length; i++) dispV(geometry.vertices[i], i);
-//     geometry.computeFlatVertexNormals();
+document.getElementById('solar-pl-box').addEventListener('click', () => {
+    selection = 'solar';
+});
 
-//     let groundColor = 0x00ff00;
-//     let waterColor = 0x0000ff;
+document.getElementById('hydro-pl-box').addEventListener('click', () => {
+    selection = 'hydro';
+});
 
-//     for (let i = 0; i < geometry.faces.length; i++) {
-//         const f = geometry.faces[i];
-//         f.color.set(groundColor);
-//         if (noisesArray[f.a] === noises.noiseWaterLevel && noisesArray[f.b] === noises.noiseWaterLevel && noisesArray[f.c] === noises.noiseWaterLevel) {
-//         f.color.set(waterColor);
-//         }
-//     }
+document.getElementById('nuclear-pl-box').addEventListener('click', () => {
+    selection = 'nuclear';
+});
 
-//     const material = new THREE.MeshPhongMaterial({ shininess: 30, flatShading: true, vertexColors: VertexColors} );
-//     const mesh = new THREE.Mesh(geometry.toBufferGeometry(), material);
-//     mesh.castShadow = true;
-//     mesh.receiveShadow = true;
-//     scene.add(mesh);
-// }
+document.getElementById('coal-pl-box').addEventListener('click', () => {
+    selection = 'coal';
+});

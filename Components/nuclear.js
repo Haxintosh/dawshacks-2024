@@ -10,7 +10,7 @@ export async function loadNuclearModel(scene) {
             '/Components/3d/nuclear.glb',
             function(gltf){
                 let coal = gltf.scene;
-                coal.scale.set(0.05, 0.05, 0.05);
+                coal.scale.set(0.001, 0.001, 0.001);
                 coal.position.set(0, 0, 0);
 
                 // mixer = new THREE.AnimationMixer(gltf.scene);

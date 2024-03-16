@@ -1,10 +1,20 @@
+@font-face{
+  font-family: Anta;
+  src: url("Assets/anta.ttf");
+}
+
 * {
   margin: 0;
-  oveflow:
-h}
+  overflow:hidden;
+}
 
-body, html {
-  heighght: 100%;
+body {
+  margin: 0;
+  width:100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: Anta;
+  pointer-events: none;
 }
 
 #main-canvas {
@@ -12,4 +22,234 @@ body, html {
   inset: 0 auto auto 0;
   width: 100%;
   height: 100%;
+  z-index: -1;
+  pointer-events: all;
 }
+
+body{
+  overflow: hidden;
+  font-family: Anta;
+}
+button{
+  font-family: Anta;
+  pointer-events: all;
+}
+
+
+#ui-side-bar {
+  position: absolute;
+  padding: 0;
+  inset: .5em auto auto .5em;
+  max-height: calc(100% - 1em - 2 * .75vh);
+  margin: 0;
+  border: rgb(245, 250, 255) 0.75vh solid;
+  border-radius: .5em;
+  transition: 500ms;
+}
+#ui-obj{
+  position: fixed;
+  inset: .5em .5em auto auto;
+  border-radius: .5em;
+  border: rgb(245, 250, 255) 0.75vh solid;
+  position: absolute;
+  transition: 500ms;
+}
+#obj-title{
+  font-size: 3vh;
+  margin: auto;
+  margin-top: 0.2em;
+  text-align: center;
+  opacity: inherit;
+
+}
+#iftr-btn, #rsc-btn{
+  font-size: 5vh;
+  border-radius: 0.4em;
+  transform: translate(-50%,-50%) scaleY(1);
+  position: absolute;
+  background-color: rgb(245, 250, 255);
+  transition: 500ms;
+  opacity: inherit;
+  border: black 0.08em solid;
+  padding: 0.1em;
+  width: 3em;
+  text-align: center;
+}
+#iftr-btn{
+  top: 5%;
+  left: 70%;
+}
+#rsc-btn{
+  top: 5%;
+  left: 30%;
+}
+#egy-obj-bar{
+  height: 0.8em;
+  width: 10vw;
+  background-color: rgb(0, 183, 255);
+  transform: translate(-50%,-50%);
+  position: absolute;
+  left: 30%;
+  top: 35%;
+  border: black 0.15em solid;
+  opacity: inherit;
+
+}
+#GHG-obj-bar{
+  height: 0.8em;
+  width: 10vw;
+  background-color: rgb(255, 123, 0);
+  transform: translate(-50%,-50%);
+  position: absolute;
+  left: 30%;
+  top: 60%;
+  border: black 0.15em solid;
+  opacity: inherit;
+}
+#pop-obj-bar{
+  height: 0.8em;
+  width: 10vw;
+  background-color: rgb(162, 0, 255);
+  transform: translate(-50%,-50%);
+  position: absolute;
+  left: 30%;
+  top: 85%;
+  border: black 0.15em solid;
+  opacity: inherit;
+
+}
+#egy-obj-text{
+  transform: translate(-50%,-50%);
+  position: absolute;
+  left: 18.5%;
+  top: 15%;
+  opacity: inherit;
+  font-size: 2.5vh;
+}
+#GHG-obj-text{
+  transform: translate(-50%,-50%);
+  position: absolute;
+  left: 18.2%;
+  top: 40%;
+  opacity: inherit;
+  font-size: 2.5vh;
+
+}
+#pop-obj-text{
+  transform: translate(-50%,-50%);
+  position: absolute;
+  left: 20%;
+  top: 65%;
+  opacity: inherit;
+  font-size: 2.5vh;
+
+}
+#egy-obj-nb{
+  transform: translate(-50%,-50%);
+  position: absolute;
+  left: 40%;
+  top: 15%;
+  opacity: inherit;
+  font-size: 2.5vh;
+
+}
+#GHG-obj-nb{
+  transform: translate(-50%,-50%);
+  position: absolute;
+  left: 40%;
+  top: 40%;
+  opacity: inherit;
+  font-size: 2.5vh;
+
+}
+#pop-obj-nb{
+  transform: translate(-50%,-50%);
+  position: absolute;
+  left: 40%;
+  top: 65%;
+  opacity: inherit;
+  font-size: 2.5vh;
+
+}
+
+#build-box{
+  position: absolute;
+  width: 29.6vw;
+  height: 80vh;
+  top: 10vh;
+  right: 1vw;
+  background-color:transparent;
+  transition: 500ms;
+  display: flex;
+  flex-direction: column;
+  /* overflow-y: scroll; */
+}
+
+.build-box-c{
+  width: 28.2vw;
+  height: 80vh;
+  margin-top: 1vh;
+  margin-left: 1vh;
+  margin-right: 1vh;
+  background-color: #0239ff;
+  transition: 500ms;
+  border: black 0.15em solid;
+  z-index: 5;
+  pointer-events: all;
+}
+.build-box-c:hover {
+  cursor: pointer;
+}
+
+/* #stat-box{
+  visibility: hidden;
+  width: 29.6vw;
+  height: 80vh;
+  margin-top: 10vh;
+  background-color:transparent;
+  transition: 500ms;
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+} */
+
+.stat-box-c{
+  width: 28.2vw;
+  height: 80vh;
+  margin-top: 1vh;
+  margin-left: 1vh;
+  margin-right: 1vh;
+  background-color: #0239ff;
+  transition: 500ms;
+  border: black 0.15em solid;
+  z-index: 5;
+  pointer-events: all;
+  overflow-y: auto;
+} 
+
+.icon{
+  width: 5vh;
+  height: 5vh;
+  margin: 0.5vh;
+  border: black 0.15em solid;
+  transition: 500ms;
+  pointer-events: all;
+}
+
+#debug-box{
+  position: absolute;
+  z-index : 5;
+  bottom:10;
+  left : 10px;
+  width: 20vw;
+  height: 20vh;
+  border: black 0.15em solid;
+  width: 29.6vw;
+  height: 80vh;
+  top: 10vh;
+  right: 1vw;
+  background-color:transparent;
+  transition: 500ms;
+  display: flex;
+  flex-direction: column;
+} 

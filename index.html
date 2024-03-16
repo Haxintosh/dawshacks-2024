@@ -2,11 +2,71 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dawhonks</title>
+    <link rel="stylesheet" href="style.css"/>
   </head>
   <body>
+    <script>
+      // let zI = -2;
+      // document.getElementById("ui-side-bar").style.zIndex = zI;
+      // addEventListener("keyup", () => {
+      //   if (zI < 0)
+      //     zI = 2;
+      //   else
+      //     zI = -2;
+      //   document.getElementById("ui-side-bar").style.zIndex = zI;
+      // });
+    </script>
+    <div id="ui-obj">
+        <p id="obj-title">Objectives this year:</p>
+
+        <p id="egy-obj-text">Energy needed:</p>
+        <div id="egy-obj-bar"></div>
+        <p id="egy-obj-nb">0</p>
+
+        <p id="GHG-obj-text">GHG maximum:</p>
+        <div id="GHG-obj-bar"></div>
+        <p id="GHG-obj-nb">0</p>
+
+        <p id="pop-obj-text">Housing needed:</p>
+        <div id="pop-obj-bar"></div>
+        <p id="pop-obj-nb">0</p>
+
+    </div>
+    <div id="ui-side-bar">
+        <div id="iftr-btn"> Build </div>
+        <div id="rsc-btn"> Stats </div>
+        <div id="stat-box">
+
+        </div>
+        <div id="build-box">
+            <div id="wind-pl-box" class="build-box-c"    onclick="()=>selection='wind'">Wind Turbine</div>
+            <div id="solar-pl-box" class="build-box-c"   onclick="()=>selection='solar'">Solar Cells</div>
+            <div id="hydro-pl-box" class="build-box-c"   onclick="()=>selection='hydro'">Hydroelectric Dams</div>
+            <div id="coal-pl-box" class="build-box-c"    onclick="()=>selection='coal'">Fossile Fuel Plant</div>
+            <div id="nuclear-pl-box" class="build-box-c" onclick="()=>selection='nuclear'">Nuclear Reactor</div>
+            <!-- <div id="house-box" class="build-box-c"></div> -->
+
+        </div>
+        <div id="stat-box">
+          <div id="eProd" class="stat-box-c"></div>
+          <div id="eCons" class="stat-box-c"></div>
+          <div id="eNet" class="stat-box-c"></div>
+          <div id="GHGProd" class="stat-box-c"></div>
+          <div id="GHGCons" class="stat-box-c"></div>
+          <div id="GHGNet" class="stat-box-c"></div>
+        </div>
+    </div>
+
+    <div id ="debug-box">
+      <div id="totalEnergy"></div>
+      <div id="totalEnergyCons"></div>
+      <div id="totalGHG"></div>
+      <div id="total"></div>
+    </div>
+  
     <canvas id="main-canvas"></canvas>
     <script type="module" src="/main.js"></script>
   </body>

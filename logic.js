@@ -1,40 +1,37 @@
+import * as THREE from 'three';
+
 // energy
-let totalEnergyComsumption;
-let totalEnergyProduction;
+export let totalEnergyComsumption;
+export let totalEnergyProduction;
+ 
+export let energyComsumptionFomula = (x) => 0.035*((x-1900)**2)+40
 
-let energyComsumptionFomula = (x) => 0.035*((x-1900)**2)+40
+export let storageCapacity;
 
-let storageCapacity;
-// Pollution
-let ghgProduction;
-let totalPollution;
+export let ghgProduction;
+export let totalPollution;
 
-// Anti-Pollution
-let naturalPollutionReduction;
-let artificalPollutionReduction;
-let nTrees;
+export let naturalPollutionReduction;
+export let artificalPollutionReduction;
+export let nTrees;
 
-// Ressources
-let totalRessources;
-let ressourcesProduction;
+export let totalRessources;
+export let ressourcesProduction;
+ 
+export let totalFossil;
+export let totalUranium;
 
-let totalFossil;
-let totalUranium;
+export let money;
+export let maintenanceFees;
 
-// Economy
-let money;
-let maintenanceFees;
+export let year = 1900;
+export let month = 1;
+export let weather;
 
-// Time
-let year = 1900;
-let month = 1;
-let weather;
-
-// Code
-let oldDelta = 0;
-let msPerCycle = 500;
-
-const notableYears = {
+export let oldDelta = 0;
+export let msPerCycle = 500;
+// like the one i just sent
+export const notableYears = {
     1904: "First geothermal power plant (Larderello, Italy)",
     1927: "Wind turbines go commercial",
     1935: "Hoover Dam",
@@ -53,7 +50,7 @@ const notableYears = {
 };
 
 
-class EnergyGenerator {
+export class EnergyGenerator {
     constructor(ghgEmissions, spaceRequired, energyProduction, maintenanceFees, lifespan, constructionMaterials, recurringMaterial, fuelDuration, type) {
         this.ghgEmissions = ghgEmissions; // Greenhouse Gas Emissions (pollution) in tons per year
         this.spaceRequired = spaceRequired; // Space required in square meters
@@ -67,37 +64,37 @@ class EnergyGenerator {
     }
 }
 
-class WindGenerator extends EnergyGenerator {
+export class WindGenerator extends EnergyGenerator {
     constructor() {
         super(0, 2000, 5000, 10000, 20, 100, 0, 0, "wind"); 
     }
 }
 
-class HydroGenerator extends EnergyGenerator {
+export class HydroGenerator extends EnergyGenerator {
     constructor() {
         super(0, 5000, 10000, 15000, 50, 500, 0, 0, "hydro"); 
     }
 }
 
-class FossilFuelGenerator extends EnergyGenerator {
+export class FossilFuelGenerator extends EnergyGenerator {
     constructor() {
         super(5000, 3000, 8000, 20000, 30, 300, 100, 1, "fossil"); 
     }
 }
 
-class SolarGenerator extends EnergyGenerator {
+export class SolarGenerator extends EnergyGenerator {
     constructor() {
         super(0, 1000, 3000, 5000, 25, 100, 0, 0, "solar");
     }
 }
 
-class NuclearGenerator extends EnergyGenerator {
+export class NuclearGenerator extends EnergyGenerator {
     constructor() {
         super(0, 4000, 10000, 30000, 40, 2000, 200, 5, "nuclear"); 
     }
 }
 
-class EnergyStorage {
+export class EnergyStorage {
     constructor(capacity, lifespan, maintenanceFees, constructionMaterials, efficiency, type) {
         this.capacity = capacity; // Capacity in Megawatt-hours
         this.lifespan = lifespan; // Lifespan in years
@@ -108,58 +105,42 @@ class EnergyStorage {
     }
 }
 
-class Battery extends EnergyStorage {
+export class Battery extends EnergyStorage {
     constructor() {
         super(1000, 5, 500, 50, 90);
     }
 }
-class Flywheel extends EnergyStorage {
+export class Flywheel extends EnergyStorage {
     constructor() {
         super(2000, 15, 1500, 150, 85);
     }
 }
-class PumpedHydro extends EnergyStorage {
+export class PumpedHydro extends EnergyStorage {
     constructor() {
         super(10000, 50, 5000, 500, 67);
     }
 }
-class SMES extends EnergyStorage {
+export class SMES extends EnergyStorage {
     constructor() {
         super(1000, 25, 2500, 250, 95);
     }
 }
-class CAES extends EnergyStorage {
+export class CAES extends EnergyStorage {
     constructor() {
         super(5000, 30, 3000, 300, 70);
     }
 }
-class thermalStorage extends EnergyStorage {
+export class thermalStorage extends EnergyStorage {
     constructor() {
         super(5000, 10, 1000, 100, 80);
     }
 }
 
-setInterval(calculate, 100);
+// setInterval(calculate, 100);
 
-let energyGenerators = [
-    new WindGenerator(),
-    new HydroGenerator(),
-    new FossilFuelGenerator(),
-    new SolarGenerator(),
-    new NuclearGenerator()
-];
-let energyStorages = [
-    new Battery(),
-    new Flywheel(),
-    new PumpedHydro(),
-    new SMES(),
-    new CAES(),
-    new thermalStorage()
-];
-function calculate() {
-    //let delta = performance.now() - oldDelta;
-    //if (delta < msPerCycle) return;
-    //oldDelta = performance.now();
+export let energyGenerators = [];
+let energyStorages = [];
+export function calculate() {
     month++;
     if (month > 12) {
         month = 1;
@@ -171,66 +152,66 @@ function calculate() {
     totalEnergyProduction = 0;
 
     for (let generator of energyGenerators) {
-        if (generator.type === "solar" && weather === "sunny") {
-            totalEnergyProduction += generator.energyProduction*1.5;
+        if (generator[0].type === "solar" && weather === "sunny") {
+            totalEnergyProduction += generator[0].energyProduction*1.5;
             continue;
         }
-        if (generator.type === "solar" && weather === "cloudy") {
-            totalEnergyProduction += generator.energyProduction*0.5;
+        if (generator[0].type === "solar" && weather === "cloudy") {
+            totalEnergyProduction += generator[0].energyProduction*0.5;
             continue;
         }
-        if (generator.type === "wind" && weather === "windy") {
-            totalEnergyProduction += generator.energyProduction*1.5;
+        if (generator[0].type === "wind" && weather === "windy") {
+            totalEnergyProduction += generator[0].energyProduction*1.5;
             continue;
         }
-        if (generator.type === "wind" && weather === "calm") {
-            totalEnergyProduction += generator.energyProduction*0.5;
+        if (generator[0].type === "wind" && weather === "calm") {
+            totalEnergyProduction += generator[0].energyProduction*0.5;
             continue;
         }
-        if (generator.type === "hydro" && weather === "rainy") {
-            totalEnergyProduction += generator.energyProduction*1.5;
+        if (generator[0].type === "hydro" && weather === "rainy") {
+            totalEnergyProduction += generator[0].energyProduction*1.5;
             continue;
         }
-        if (generator.type === "hydro" && weather === "dry") {
-            totalEnergyProduction += generator.energyProduction*0.5;
+        if (generator[0].type === "hydro" && weather === "dry") {
+            totalEnergyProduction += generator[0].energyProduction*0.5;
             continue;
         }
         
-        if (generator.fuelDuration > 0 && generator.type === "fossil") {
-            generator.fuelDuration--;
-            if (generator.fuelDuration === 0) {
-                if (totalFossil - generator.recurringMaterial > 0 ) {
-                    generator.fuelDuration = 1;
-                    totalFossil -= generator.recurringMaterial;
-                    generator.energyProduction = 8000;
+        if (generator[0].fuelDuration > 0 && generator[0].type === "fossil") {
+            generator[0].fuelDuration--;
+            if (generator[0].fuelDuration === 0) {
+                if (totalFossil - generator[0].recurringMaterial > 0 ) {
+                    generator[0].fuelDuration = 1;
+                    totalFossil -= generator[0].recurringMaterial;
+                    generator[0].energyProduction = 8000;
                 } else {
-                    generator.energyProduction = 0;
+                    generator[0].energyProduction = 0;
                 }
             } else {
-                generator.energyProduction = 8000;
+                generator[0].energyProduction = 8000;
             }
-        } else if (generator.fuelDuration > 0 && generator.type === "nuclear") {
-            generator.fuelDuration--;
-            if (generator.fuelDuration === 0) {
-                if (totalUranium - generator.recurringMaterial > 0 ) {
-                    generator.fuelDuration = 5;
-                    totalUranium -= generator.recurringMaterial;
-                    generator.energyProduction = 10000;
+        } else if (generator[0].fuelDuration > 0 && generator[0].type === "nuclear") {
+            generator[0].fuelDuration--;
+            if (generator[0].fuelDuration === 0) {
+                if (totalUranium - generator[0].recurringMaterial > 0 ) {
+                    generator[0].fuelDuration = 5;
+                    totalUranium -= generator[0].recurringMaterial;
+                    generator[0].energyProduction = 10000;
                 } else {
-                    generator.energyProduction = 0;
+                    generator[0].energyProduction = 0;
                 }
             } else {
-                generator.energyProduction = 10000;
+                generator[0].energyProduction = 10000;
             }
         }
-        totalEnergyProduction += generator.energyProduction;
+        totalEnergyProduction += generator[0].energyProduction;
     }
     // Calculate pollution
     ghgProduction = 0;
 
     for (let generator of energyGenerators) {
-        if (generator.energyProduction === 0) continue;
-        ghgProduction += generator.ghgEmissions;
+        if (generator[0].energyProduction === 0) continue;
+        ghgProduction += generator[0].ghgEmissions;
     }
 
     totalPollution =+ ghgProduction;
@@ -247,7 +228,7 @@ function calculate() {
 
     // Calculate money
     for (let generator of energyGenerators) {
-        money -= generator.maintenanceFees;
+        money -= generator[0].maintenanceFees;
     }
 
     for (let storage of energyStorages) {
@@ -261,13 +242,15 @@ function calculate() {
 
     // Update Lifetime
     for (let generator of energyGenerators) {
-        generator.lifespan--;
+        generator[0].lifespan--;
     }
     for (let storage of energyStorages) {
         storage.lifespan--;
     }
     for (let generator of energyGenerators) {
-        if (generator.lifespan <= 0) {
+        if (generator[0].lifespan <= 0) {
+            generator[1].remove();
+
             energyGenerators.splice(energyGenerators.indexOf(generator), 1);
         }
     }
@@ -286,9 +269,26 @@ function calculate() {
     // end
     if (totalEnergyProduction < totalEnergyComsumption) {
         if (totalEnergyProduction < totalEnergyComsumption+storageCapacity) {
-            console.log("You are running out of energy!");
+            // console.log("You are running out of energy!");
         } else {
-            console.log("You are running out of energy, but you have enough storage!");
+            // console.log("You are running out of energy, but you have enough storage!");
         }
+    }
+
+    return {
+        totalEnergyComsumption,
+        totalEnergyProduction,
+        totalPollution,
+        naturalPollutionReduction,
+        artificalPollutionReduction,
+        totalRessources,
+        ressourcesProduction,
+        totalFossil,
+        totalUranium,
+        money,
+        maintenanceFees,
+        year,
+        month,
+        weather
     }
 }

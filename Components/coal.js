@@ -7,31 +7,18 @@ export async function loadCoalModel(scene) {
         let action;
 
         loader.load(
-            '/Components/3d/coal.glb',
-            function(gltf){
-                let coal = gltf.scene;
+            '/Components/3d/coalv2.glb',
+            gltf => {
+                const coal = gltf.scene;
                 coal.scale.set(0.05, 0.05, 0.05);
                 coal.position.set(0, 0, 0);
 
-                mixer = new THREE.AnimationMixer(gltf.scene);
-                const clips = gltf.animations; 
-                const clip = clips[0];
-                action = mixer.clipAction(clip);
-                action.reset();
-                action.play();
-
-                coal.name = "coal"
+                coal.name = "coal";
                 scene.add(coal);
-                resolve(coal);  // Resolve the promise with coal       
+                resolve(coal);
             },
-            function ( xhr ) {
-                console.log( ( xhr.loaded / xhr.total * 100 ), '% loaded' );
-            },
-            function ( error ) {
-                console.log(error);
-                console.log( 'An error happened' );
-                reject(error); // Reject the promise with error
-            }
+            () => {},
+            err => reject(err)
         );
     });
 }
