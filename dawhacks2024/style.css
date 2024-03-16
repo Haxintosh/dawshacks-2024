@@ -1,0 +1,15 @@
+* {
+  margin: 0;
+  oveflow:
+h}
+
+body, html {
+  heighght: 100%;
+}
+
+#main-canvas {
+  position: fixed;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 100%;
+}
