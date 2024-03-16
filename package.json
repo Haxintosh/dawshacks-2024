@@ -12,6 +12,8 @@
     "vite": "^5.1.6"
   },
   "dependencies": {
+    "chokidar": "^3.6.0",
+    "fastnoise-lite": "^1.1.1",
     "simplex-noise": "^4.0.1",
     "three": "^0.162.0"
   }

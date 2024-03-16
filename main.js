@@ -1,21 +1,23 @@
 import './style.css';
 import * as THREE from 'three';
+import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls.js';
 import {Engine} from './engine.js';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js'; 
 import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass.js';
 import {OutlinePass} from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import {OutputPass} from 'three/examples/jsm/postprocessing/OutputPass.js';
-import {Planet} from './planet.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { Planet } from './Components/planet.js';
+import { loadCoalModel } from './Components/coal.js';
 
 let mouse = new THREE.Vector2();
-let raycaster = new THREE.Raycaster();
 // Create a renderer
 const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#main-canvas') });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 // Create a camera
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.z = 5;
 
 let controls = new ArcballControls(camera, renderer.domElement);
@@ -23,8 +25,8 @@ controls.enableDamping = true;
 controls.dampingFactor = 100;
 controls.enableZoom = true;
 controls.enablePan = false;
-// controls.minDistance = 1.5;
-// controls.maxDistance = 5;
+controls.minDistance = 14;
+controls.maxDistance = 50;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xFAC898);
@@ -65,36 +67,6 @@ sun.directionalLight.position
 scene.add(sun.directionalLight);
 scene.add(sun.backLight);
 
-// // The planet
-// scene.add(new THREE.Mesh(
-//     (() => {
-//         const geometry = new THREE.IcosahedronGeometry(1, 10);
-//         console.log(geometry)
-//         return geometry;
-//     }),
-//     new THREE.MeshStandardMaterial({
-//         color: 0x00ff00,
-//         flatShading: true
-//     })
-// ));
-
-// Additional lights
-
-
-const Update = () => {
-    controls.update();
-    sun.update(engine.delta);
-    raycastHandler();
-}
-
-const Render = () => {
-    // renderer.render(scene, camera);
-    composer.render();
-}
-
-export const engine = new Engine(30, Update, Render);
-
-engine.start();
 
 // Canvas resize
 window.addEventListener('resize', () => {
@@ -114,22 +86,116 @@ function onPointerMove( event ) {
 
 addEventListener('mousemove', onPointerMove);
 
-function raycastHandler(){
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects( scene.children, true);
-};
-
 
 const planet = new Planet();
 planet.generate();
-
-//Water
-const wGeo = new THREE.IcosahedronGeometry(5, 3);
-const blue = new THREE.MeshStandardMaterial({ color: 0x0000ff, flatShading: true });
-const wMesh = new THREE.Mesh(wGeo, blue);
-wMesh.receiveShadow = true;
-scene.add(wMesh);
 scene.add(planet.mesh);
+
+planet.mesh.traverse((child) => {
+    if (child.isMesh) {
+        child.name = 'planet';
+    }
+});
+let coal;
+loadCoalModel(scene).then((c) => {
+    coal = c.children[0];
+    console.log("coal", coal);
+});
+let sg = new THREE.BoxGeometry(1, 1, 1);
+let mat = new THREE.MeshStandardMaterial({color: 'hotpink'});
+const boqs = new THREE.Mesh(sg, mat)
+
+// wut it no werk ;( eh its in middle 
+const ocean = new THREE.IcosahedronGeometry(10, 3);
+const oceanMaterial = new THREE.MeshStandardMaterial({
+    color: 0x445ed4,
+    flatShading: true,
+    transparent: true,
+    opacity: .9
+});
+const oceanMesh = new THREE.Mesh(ocean, oceanMaterial);
+oceanMesh.receiveShadow = true;
+scene.add(oceanMesh);
+oceanMesh.name = 'ocean';
+
+const cursor = {
+    light: new THREE.PointLight(0xffffff, 3),
+    raycaster: new THREE.Raycaster(),
+    pressed: false,
+    update() {
+
+        this.raycaster.setFromCamera(mouse, camera);
+        const intersects = this.raycaster.intersectObject(planet.mesh);
+        if (intersects.length === 0) {
+            cursor.light.position.set(NaN, NaN, NaN);
+        }
+        if (intersects.length > 0) {
+            const intersect = intersects[0];
+            cursor.light.position
+                .copy(intersect.point)
+                .setLength(3 + cursor.light.position.length());
+        
+            //testing
+            if (this.pressed)
+            {
+                this.pressed = false;
+            }
+        }
+    }
+}
+scene.add(cursor.light);
+
+addEventListener('mousedown', onMouseDown);
+
+let listObj = [];
+function onMouseDown(e) { // no way
+    cursor.pressed = true;
+    
+    cursor.raycaster.setFromCamera(mouse, camera);
+    const intersects = cursor.raycaster.intersectObject(planet.mesh);
+    
+    if (intersects.length === 0) return;
+
+    const intersect = intersects[0];
+    const position = intersect.point;
+    const normal = intersect.face.normal.clone();
+
+
+    if (position.length() < ocean.parameters.radius) return;
+    // sobbing rn why is the coal plamt so small
+    
+
+    listObj.push(placeObject(coal, position, normal));
+}
+function placeObject(obj, pos, norm) {
+    // ok yeah mb do rotate it here
+    const clone = SkeletonUtils.clone(obj);
+    clone.scale.set(0.075,0.075,0.075);
+    clone.position.copy(pos);
+    clone.rotateX(Math.PI / 2);
+    clone.lookAt(pos.clone().add(norm));
+    scene.add(clone);
+    return clone;
+}
+
+const Update = () => {
+    controls.update();
+    sun.update(engine.delta);
+    cursor.update();
+}
+
+const Render = () => {
+    composer.render();
+}
+
+export const engine = new Engine(30, Update, Render);
+
+engine.start();
+
+
+
+
+
 
 // const noises = {
 //     noiseF: 0.015,
@@ -143,7 +209,7 @@ scene.add(planet.mesh);
 // function genEarth(){
     
 //     const time = Date.now()*0.001;
-//     const noisesArray = [];
+//     const noisesArray = []; auto reload? auto reload? auto reload? auto reload? auto reload? auto reload? auto reload? auto reload? autoreload?
 //     function noise(v, f, i) {
 //         const nv = new THREE.Vector3(v.x, v.y, v.z).multiplyScalar(f).addScalar(time);
 //         let noice = (new SimplexNoise().noise3d(nv.x, nv.y, nv.z) + 1) / 2;
