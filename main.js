@@ -92,7 +92,7 @@ const Render = () => {
     composer.render();
 }
 
-const engine = new Engine(30, Update, Render);
+export const engine = new Engine(30, Update, Render);
 
 engine.start();
 
