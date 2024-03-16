@@ -9,7 +9,11 @@ import {OutlinePass} from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import {OutputPass} from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Planet } from './Components/planet.js';
+
 import { loadCoalModel } from './Components/coal.js';
+import { loadHydroModel } from './Components/hydro.js';
+import { loadNuclearModel } from './Components/nuclear.js';
+import { loadSolarModel } from './Components/solar.js';
 
 let mouse = new THREE.Vector2();
 // Create a renderer
@@ -87,7 +91,11 @@ function onPointerMove( event ) {
 addEventListener('mousemove', onPointerMove);
 
 
-const planet = new Planet();
+const planet = new Planet(new THREE.MeshStandardMaterial({
+    color: 0x60b52f5e9c41,
+    roughness: 1,
+    flatShading: true
+}));
 planet.generate();
 scene.add(planet.mesh);
 
@@ -96,11 +104,13 @@ planet.mesh.traverse((child) => {
         child.name = 'planet';
     }
 });
-let coal;
-loadCoalModel(scene).then((c) => {
-    coal = c.children[0];
-    console.log("coal", coal);
-});
+
+const coal = (await loadCoalModel(scene)).children[0];
+const hydro = (await loadHydroModel(scene)).children[0];
+const nuclear = (await loadNuclearModel(scene)).children[0];
+const solar = (await loadSolarModel(scene)).children[0];
+
+
 let sg = new THREE.BoxGeometry(1, 1, 1);
 let mat = new THREE.MeshStandardMaterial({color: 'hotpink'});
 const boqs = new THREE.Mesh(sg, mat)
@@ -119,7 +129,7 @@ scene.add(oceanMesh);
 oceanMesh.name = 'ocean';
 
 const cursor = {
-    light: new THREE.PointLight(0xffffff, 3),
+    light: new THREE.PointLight(0xffffff, 6),
     raycaster: new THREE.Raycaster(),
     pressed: false,
     update() {
@@ -133,7 +143,7 @@ const cursor = {
             const intersect = intersects[0];
             cursor.light.position
                 .copy(intersect.point)
-                .setLength(3 + cursor.light.position.length());
+                .setLength(5 + cursor.light.position.length());
         
             //testing
             if (this.pressed)

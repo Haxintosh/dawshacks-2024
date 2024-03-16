@@ -3,7 +3,7 @@ import {SimplexNoise} from 'three/examples/jsm/math/SimplexNoise.js';
 import {engine} from '../main.js'
 
 export class Planet {
-    constructor()
+    constructor(material)
     {
         this.simplex = new SimplexNoise();
 
@@ -11,15 +11,14 @@ export class Planet {
         this.nPos = [];
         this.vertices = {};
 
-        this.material = {};
+        this.material = material;
         this.mesh = {};
-
     }
 
     displace()
     {
         this.geometry.userData.nPos.forEach((p, idx) => {
-            const noise = this.simplex.noise3d(p.x, p.y, p.z); //y is it worse bro, its not loading
+            const noise = this.simplex.noise3d(p.x, p.y, p.z);
             const v = p.clone().multiplyScalar(10).addScaledVector(p, noise);
             this.vertices.setXYZ(idx, v.x, v.y, v.z);
         });
@@ -33,11 +32,11 @@ export class Planet {
 
         this.vertices = this.geometry.attributes.position;
         this.uv = this.geometry.attributes.uv;
-        this.v3 = new THREE.Vector3();
 
         for (let i = 0; i < this.vertices.count; i++){
-            this.v3.fromBufferAttribute(this.vertices, i).normalize();
-            this.nPos.push(this.v3.clone());
+            const v = new THREE.Vector3()
+                .fromBufferAttribute(this.vertices, i).normalize();
+            this.nPos.push(v);
         }
         this.geometry.userData.nPos = this.nPos;
         // displac
@@ -46,8 +45,7 @@ export class Planet {
 
 
         // Mesh
-        this.green = new THREE.MeshPhongMaterial({ color: 0x00ff00, flatShading: true });
-        this.mesh = new THREE.Mesh(this.geometry, this.green);
+        this.mesh = new THREE.Mesh(this.geometry, this.material);
         this.mesh.castShadow = true;
         this.mesh.receiveShadow = true;
 
