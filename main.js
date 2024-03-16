@@ -122,6 +122,13 @@ function raycastHandler(){
 
 const planet = new Planet();
 planet.generate();
+
+//Water
+const wGeo = new THREE.IcosahedronGeometry(5, 3);
+const blue = new THREE.MeshStandardMaterial({ color: 0x0000ff, flatShading: true });
+const wMesh = new THREE.Mesh(wGeo, blue);
+wMesh.receiveShadow = true;
+scene.add(wMesh);
 scene.add(planet.mesh);
 
 // const noises = {

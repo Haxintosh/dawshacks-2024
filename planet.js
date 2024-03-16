@@ -39,7 +39,7 @@ export class Planet {
             let t = engine.time;
             this.geometry.userData.nPos.forEach((p, idx) => {
                 let ns = this.simplex.noise4d(p.x, p.y, p.z, t);
-                this.v3.copy(p).multiplyScalar(2).addScaledVector(p, ns);
+                this.v3.copy(p).multiplyScalar(5).addScaledVector(p, ns);
                 this.vertices.setXYZ(idx, this.v3.x, this.v3.y, this.v3.z);
             });
         };
@@ -49,7 +49,8 @@ export class Planet {
     generate()
     {
         //Geometry
-        this.geometry = new THREE.IcosahedronGeometry(10, 10);// still massive
+        this.geometry = new THREE.IcosahedronGeometry(10, 10);
+
         this.vertices = this.geometry.attributes.position;
         this.uv = this.geometry.attributes.uv;
         this.v3 = new THREE.Vector3();
@@ -62,13 +63,11 @@ export class Planet {
         // displac
         for (let i = 0; i < this.vertices.count; i++) this.displace(new THREE.Vector3().fromBufferAttribute(this.vertices, i).normalize(), i);
         this.geometry.computeVertexNormals();
-        console.log(this.noises)
-        console.log(this.uv.getX(1));
 
 
         // Mesh
-        this.material = new THREE.MeshPhongMaterial({ color: 0x00ff00, flatShading: true });
-        this.mesh = new THREE.Mesh(this.geometry, this.material);
+        this.green = new THREE.MeshPhongMaterial({ color: 0x00ff00, flatShading: true });
+        this.mesh = new THREE.Mesh(this.geometry, this.green);
         this.mesh.castShadow = true;
         this.mesh.receiveShadow = true;
         // return this.mesh;
